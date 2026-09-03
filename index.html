@@ -84,6 +84,26 @@
             font-weight: 500;
         }
         
+        /* Estilos para campos editables */
+        .campo-editable input,
+        .campo-editable select {
+            width: 100%;
+            padding: 8px 12px;
+            margin-top: 5px;
+            border: 2px solid #d1d9e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: white;
+        }
+        
+        .campo-editable input:focus,
+        .campo-editable select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
         .error {
             text-align: center;
             padding: 30px 20px;
@@ -117,25 +137,10 @@
             margin-top: 5px;
         }
         
-        .badge-exitoso {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .badge-pendiente {
-            background: #f39c12;
-            color: white;
-        }
-        
-        .badge-dano {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .badge-mantenimiento {
-            background: #3498db;
-            color: white;
-        }
+        .badge-exitoso { background: #27ae60; color: white; }
+        .badge-pendiente { background: #f39c12; color: white; }
+        .badge-dano { background: #e74c3c; color: white; }
+        .badge-mantenimiento { background: #3498db; color: white; }
         
         .footer {
             margin-top: 20px;
@@ -160,32 +165,88 @@
             font-size: 14px;
         }
         
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        /* Botones de acción */
+        .acciones {
+            display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
-        .info-item {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .info-item .label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #7f8c8d;
-            font-weight: 700;
-        }
-        
-        .info-item .value {
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
             font-size: 14px;
-            color: #2c3e50;
-            margin-top: 2px;
-            font-weight: 500;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-editar {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-editar:hover {
+            background: #5a6fd6;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-guardar {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-guardar:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-cancelar {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-cancelar:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-deshabilitado {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .mensaje-exito {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+        
+        .mensaje-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+        
+        .mensaje-exito.mostrar,
+        .mensaje-error.mostrar {
+            display: block;
         }
     </style>
 </head>
@@ -200,14 +261,15 @@
 
 <script>
     // =====================================================
-    // CONFIGURACIÓN - USA EL ENLACE DE PUBLICACIÓN
+    // CONFIGURACIÓN
     // =====================================================
     
-    // El enlace de publicación de tu Google Sheets
-    const URL_PUBLICA = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTX8kmNGVvk4AdbfLHyopREllBJ1jjlmfdn2nShpYbWDhnaLEdfBtjA75mL1-IwLFn3KB8kCVGVcLg/pub?gid=1290902843&single=true&output=csv';
+    const URL_PUBLICA = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrXQFc-3LwfW29msop3ojGDKyehHOpC4nyfVYs_DgvKUjXGvauIcpPVRnuKG0hR4kFJQMcZLMp78na/pub?output=csv';
+    // CAMBIA ESTA URL POR LA DE TU SCRIPT DE GOOGLE APPS SCRIPT
+    const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxXQ6Zj9G_m5i2kut-uuNvUHv_n-Bl6o5wujEKruCWvzdFH2aYsWRnQ4MuvOzmLC8kr/exec';
     
     // =====================================================
-    // NO TOCAR DEBAJO DE ESTA LÍNEA
+    // FUNCIONES AUXILIARES
     // =====================================================
     
     function obtenerParametro(nombre) {
@@ -225,17 +287,19 @@
         return estados[estado] || 'badge-pendiente';
     }
     
+    function generarOpcionesEstado(estadoActual) {
+        const opciones = ['En funcionamiento', 'En mantenimiento', 'Con daño', 'Pendiente de revisión'];
+        return opciones.map(opcion => 
+            `<option value="${opcion}" ${opcion === estadoActual ? 'selected' : ''}>${opcion}</option>`
+        ).join('');
+    }
+    
     async function obtenerDatosDeGoogleSheets() {
         try {
             const response = await fetch(URL_PUBLICA);
-            
-            if (!response.ok) {
-                throw new Error('Error al obtener los datos');
-            }
+            if (!response.ok) throw new Error('Error al obtener los datos');
             
             const csvText = await response.text();
-            
-            // Convertir CSV a JSON
             const lineas = csvText.split('\n').filter(linea => linea.trim() !== '');
             const encabezados = lineas[0].split(',').map(h => h.trim());
             
@@ -245,12 +309,11 @@
                 const obj = {};
                 for (let j = 0; j < encabezados.length; j++) {
                     let valor = valores[j] || '';
-                    valor = valor.replace(/^"|"$/g, ''); // Eliminar comillas al inicio y final
+                    valor = valor.replace(/^"|"$/g, '');
                     obj[encabezados[j]] = valor;
                 }
                 resultados.push(obj);
             }
-            
             return resultados;
         } catch (error) {
             console.error('Error al cargar datos:', error);
@@ -258,11 +321,14 @@
         }
     }
     
-    async function mostrarEquipo() {
+    // =====================================================
+    // FUNCIÓN PRINCIPAL PARA MOSTRAR EL EQUIPO
+    // =====================================================
+    
+    async function mostrarEquipo(modoEdicion = false) {
         const contenedor = document.getElementById('contenido');
         const folioBuscado = obtenerParametro('folio');
         
-        // Si no hay folio en la URL
         if (!folioBuscado) {
             contenedor.innerHTML = `
                 <div class="error">
@@ -271,7 +337,7 @@
                     <div style="margin-top: 15px; padding: 10px; background: #f0f4f8; border-radius: 8px;">
                         <p style="font-size: 14px; color: #555;">Ejemplo de URL:</p>
                         <code style="background: #e8eef5; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                            index.html?folio=A#001
+                            index.html?folio=A-001
                         </code>
                     </div>
                     <div class="badge">Sistema de inventario</div>
@@ -288,7 +354,6 @@
             </div>
         `;
         
-        // Obtener datos de Google Sheets
         const datos = await obtenerDatosDeGoogleSheets();
         
         if (!datos) {
@@ -304,100 +369,245 @@
             return;
         }
         
-        // Buscar el equipo por folio
         const equipo = datos.find(item => item.Folio === folioBuscado);
+        const esNuevo = !equipo;
         
-        if (!equipo) {
-            // Mostrar folios disponibles para ayudar al usuario
-            const foliosDisponibles = datos.map(item => item.Folio).filter(Boolean);
-            const muestraFolios = foliosDisponibles.slice(0, 15);
-            
-            contenedor.innerHTML = `
-                <div class="error">
-                    <h2>❌ Equipo no encontrado</h2>
-                    <p>No existe un equipo con el folio:</p>
-                    <p style="font-size: 24px; font-weight: bold; color: #1a237e; margin: 10px 0;">
-                        ${folioBuscado}
-                    </p>
-                    <p style="font-size: 14px; color: #95a5a6; margin-top: 10px;">
-                        Verifica que el folio sea correcto
-                    </p>
-                    ${foliosDisponibles.length > 0 ? `
-                        <div style="margin-top: 15px; padding: 10px; background: #f0f4f8; border-radius: 8px; text-align: left;">
-                            <p style="font-size: 12px; color: #666;">📌 Folios disponibles (${foliosDisponibles.length} en total):</p>
-                            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px;">
-                                ${muestraFolios.map(f => `<span style="display: inline-block; background: #e8eef5; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${f}</span>`).join('')}
-                                ${foliosDisponibles.length > 15 ? `<span style="display: inline-block; background: #e8eef5; padding: 2px 8px; border-radius: 4px; font-size: 11px;">+${foliosDisponibles.length - 15} más</span>` : ''}
-                            </div>
+        // Si el equipo no existe, crear datos vacíos para nuevo registro
+        const datosEquipo = equipo || {
+            Folio: folioBuscado,
+            Equipo: '',
+            Modelo: '',
+            Marca: '',
+            Ubicacion: '',
+            Zona: '',
+            Estado: 'Pendiente de revisión',
+            Clave: ''
+        };
+        
+        const claseEstado = obtenerClaseEstado(datosEquipo.Estado);
+        
+        // =====================================================
+        // MODO VISUALIZACIÓN (SOLO LECTURA)
+        // =====================================================
+        if (!modoEdicion) {
+            if (!equipo) {
+                contenedor.innerHTML = `
+                    <div class="error">
+                        <h2>📝 Nuevo equipo</h2>
+                        <p>El folio <strong>${folioBuscado}</strong> no existe en el inventario</p>
+                        <p style="font-size: 14px; color: #95a5a6; margin-top: 10px;">
+                            Haz clic en "Editar" para crear este nuevo registro
+                        </p>
+                        <div class="acciones">
+                            <button class="btn btn-editar" onclick="mostrarEquipo(true)">✏️ Crear equipo</button>
                         </div>
-                    ` : ''}
+                    </div>
+                `;
+                return;
+            }
+            
+            // Mostrar datos en modo lectura
+            contenedor.innerHTML = `
+                <h1 class="titulo">${datosEquipo.Equipo || 'Equipo'}</h1>
+                
+                <div class="campo">
+                    <div class="etiqueta">Folio</div>
+                    <div class="valor"><span class="folio-destacado">${datosEquipo.Folio}</span></div>
+                </div>
+                
+                <div class="campo">
+                    <div class="etiqueta">Equipo</div>
+                    <div class="valor">${datosEquipo.Equipo || 'No especificado'}</div>
+                </div>
+                
+                <div class="campo">
+                    <div class="etiqueta">Modelo</div>
+                    <div class="valor">${datosEquipo.Modelo || 'No especificado'}</div>
+                </div>
+                
+                <div class="campo">
+                    <div class="etiqueta">Marca</div>
+                    <div class="valor">${datosEquipo.Marca || 'No especificada'}</div>
+                </div>
+                
+                <div class="campo">
+                    <div class="etiqueta">Ubicación</div>
+                    <div class="valor">${datosEquipo.Ubicacion || 'No especificada'}</div>
+                </div>
+                
+                <div class="campo">
+                    <div class="etiqueta">Zona</div>
+                    <div class="valor">${datosEquipo.Zona || 'No especificada'}</div>
+                </div>
+                
+                <div class="campo" style="border-left-color: ${datosEquipo.Estado === 'En funcionamiento' ? '#27ae60' : '#f39c12'};">
+                    <div class="etiqueta">Estado</div>
+                    <div class="valor">
+                        <span class="badge-estado ${claseEstado}">${datosEquipo.Estado || 'No especificado'}</span>
+                    </div>
+                </div>
+                
+                <div class="campo" style="border-left-color: #8e44ad;">
+                    <div class="etiqueta">Clave</div>
+                    <div class="valor"><span class="clave-unica">${datosEquipo.Clave || 'No disponible'}</span></div>
+                </div>
+                
+                <div class="acciones">
+                    <button class="btn btn-editar" onclick="mostrarEquipo(true)">✏️ Editar</button>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <span class="badge">✅ Datos actualizados</span>
+                </div>
+                
+                <div class="footer">
+                    Última actualización: ${new Date().toLocaleString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
                 </div>
             `;
             return;
         }
         
-        const claseEstado = obtenerClaseEstado(equipo.Estado);
-        
-        // Mostrar los datos del equipo encontrado
+        // =====================================================
+        // MODO EDICIÓN
+        // =====================================================
         contenedor.innerHTML = `
-            <h1 class="titulo">${equipo.Equipo || 'Equipo'}</h1>
+            <h1 class="titulo">${esNuevo ? '📝 Nuevo equipo' : '✏️ Editar equipo'}</h1>
             
-            <div class="campo">
-                <div class="etiqueta">Folio</div>
-                <div class="valor"><span class="folio-destacado">${equipo.Folio}</span></div>
+            <div class="campo campo-editable" style="border-left-color: #1a237e;">
+                <div class="etiqueta">Folio (no editable)</div>
+                <div class="valor"><span class="folio-destacado">${datosEquipo.Folio}</span></div>
+                <input type="hidden" id="folio-input" value="${datosEquipo.Folio}">
             </div>
             
-            <div class="campo">
-                <div class="etiqueta">Ubicación / Área</div>
-                <div class="valor">${equipo['Hoja de Origen'] || 'No especificada'}</div>
+            <div class="campo campo-editable" style="border-left-color: #667eea;">
+                <div class="etiqueta">Equipo *</div>
+                <input type="text" id="equipo-input" value="${datosEquipo.Equipo || ''}" placeholder="Ej: Laptop Dell XPS">
             </div>
             
-            <div class="campo">
-                <div class="etiqueta">Característica / Detalle</div>
-                <div class="valor">${equipo.Característica || 'No especificada'}</div>
+            <div class="campo campo-editable" style="border-left-color: #667eea;">
+                <div class="etiqueta">Modelo *</div>
+                <input type="text" id="modelo-input" value="${datosEquipo.Modelo || ''}" placeholder="Ej: XPS 13 9310">
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
-                <div class="campo" style="border-left-color: #3498db; margin: 0;">
-                    <div class="etiqueta">Hoja de Origen</div>
-                    <div class="valor" style="font-size: 16px;">${equipo['Hoja de Origen'] || 'N/A'}</div>
-                </div>
-                <div class="campo" style="border-left-color: #9b59b6; margin: 0;">
-                    <div class="etiqueta">Ubicación exacta</div>
-                    <div class="valor" style="font-size: 16px;">Fila ${equipo.Fila || 'N/A'}, Columna ${equipo.Columna || 'N/A'}</div>
-                </div>
+            <div class="campo campo-editable" style="border-left-color: #667eea;">
+                <div class="etiqueta">Marca *</div>
+                <input type="text" id="marca-input" value="${datosEquipo.Marca || ''}" placeholder="Ej: Dell">
             </div>
             
-            <div class="campo" style="border-left-color: ${equipo.Estado === 'En funcionamiento' ? '#27ae60' : '#f39c12'};">
+            <div class="campo campo-editable" style="border-left-color: #667eea;">
+                <div class="etiqueta">Ubicación *</div>
+                <input type="text" id="ubicacion-input" value="${datosEquipo.Ubicacion || ''}" placeholder="Ej: Edificio A, Piso 3">
+            </div>
+            
+            <div class="campo campo-editable" style="border-left-color: #667eea;">
+                <div class="etiqueta">Zona</div>
+                <input type="text" id="zona-input" value="${datosEquipo.Zona || ''}" placeholder="Ej: Norte">
+            </div>
+            
+            <div class="campo campo-editable" style="border-left-color: #667eea;">
                 <div class="etiqueta">Estado</div>
-                <div class="valor">
-                    <span class="badge-estado ${claseEstado}">${equipo.Estado || 'No especificado'}</span>
-                </div>
+                <select id="estado-input">
+                    ${generarOpcionesEstado(datosEquipo.Estado)}
+                </select>
             </div>
             
-            <div class="campo" style="border-left-color: #8e44ad;">
-                <div class="etiqueta">Clave Única</div>
-                <div class="valor"><span class="clave-unica">${equipo['Clave Única'] || 'No disponible'}</span></div>
+            <div class="campo campo-editable" style="border-left-color: #667eea;">
+                <div class="etiqueta">Clave</div>
+                <input type="text" id="clave-input" value="${datosEquipo.Clave || ''}" placeholder="Ej: DEL-XPS-001">
             </div>
             
-            <div style="text-align: center; margin-top: 15px;">
-                <span class="badge">✅ Datos actualizados</span>
+            <div id="mensaje-exito" class="mensaje-exito">✅ Datos guardados correctamente</div>
+            <div id="mensaje-error" class="mensaje-error">❌ Error al guardar los datos</div>
+            
+            <div class="acciones">
+                <button class="btn btn-guardar" onclick="guardarDatos()">💾 Guardar</button>
+                <button class="btn btn-cancelar" onclick="mostrarEquipo(false)">❌ Cancelar</button>
             </div>
             
             <div class="footer">
-                Última actualización: ${new Date().toLocaleString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}
+                ${esNuevo ? 'Creando nuevo registro' : 'Editando registro existente'} • Folio: ${datosEquipo.Folio}
             </div>
         `;
     }
     
-    // Ejecutar al cargar la página
-    mostrarEquipo();
+    // =====================================================
+    // FUNCIÓN PARA GUARDAR DATOS
+    // =====================================================
+    
+    async function guardarDatos() {
+        // Carga
+        const mensajeExito = document.getElementById('mensaje-exito');
+        const mensajeError = document.getElementById('mensaje-error');
+        const botonGuardar = document.querySelector('.btn-guardar');
+        
+        botonGuardar.disabled = true;
+        botonGuardar.textContent = '⏳ Guardando...';
+        mensajeExito.classList.remove('mostrar');
+        mensajeError.classList.remove('mostrar');
+        
+
+        const datos = {
+            Folio: document.getElementById('folio-input').value,
+            Equipo: document.getElementById('equipo-input').value.trim(),
+            Modelo: document.getElementById('modelo-input').value.trim(),
+            Marca: document.getElementById('marca-input').value.trim(),
+            Ubicacion: document.getElementById('ubicacion-input').value.trim(),
+            Zona: document.getElementById('zona-input').value.trim(),
+            Estado: document.getElementById('estado-input').value,
+            Clave: document.getElementById('clave-input').value.trim()
+        };
+        
+        // Validar campos requeridos
+        if (!datos.Equipo || !datos.Modelo || !datos.Marca || !datos.Ubicacion) {
+            mensajeError.textContent = '❌ Los campos marcados con * son obligatorios';
+            mensajeError.classList.add('mostrar');
+            botonGuardar.disabled = false;
+            botonGuardar.textContent = '💾 Guardar';
+            return;
+        }
+        
+        try {
+            // Enviar datos al script de Google Apps
+            const response = await fetch(URL_SCRIPT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(datos)
+            });
+            
+            const resultado = await response.text();
+            
+            if (response.ok && !resultado.includes('Error')) {
+                mensajeExito.textContent = '✅ Datos guardados correctamente en el inventario';
+                mensajeExito.classList.add('mostrar');
+                
+                // Esperar 2 segundos y volver al modo visualización
+                setTimeout(() => {
+                    mostrarEquipo(false);
+                }, 2000);
+            } else {
+                throw new Error(resultado || 'Error desconocido');
+            }
+        } catch (error) {
+            mensajeError.textContent = `❌ Error: ${error.message || 'No se pudo guardar los datos'}`;
+            mensajeError.classList.add('mostrar');
+            botonGuardar.disabled = false;
+            botonGuardar.textContent = '💾 Guardar';
+        }
+    }
+    
+    // =====================================================
+    // INICIAR LA APLICACIÓN
+    // =====================================================
+    
+    mostrarEquipo(false);
 </script>
 
 </body>
