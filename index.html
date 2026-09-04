@@ -270,8 +270,8 @@
             display: none;
         }
         
-        .mensaje-exito.mostrar,
-        .mensaje-error.mostrar {
+        .mensaje-exito.,
+        .mensaje-error. {
             display: block;
         }
     </style>
@@ -438,9 +438,6 @@
         }
     }
     
-    // =====================================================
-    // FUNCIÓN PRINCIPAL PARA MOSTRAR EL EQUIPO (CORREGIDA)
-    // =====================================================
     
     async function mostrarEquipo(modoEdicion = false, forzarRecarga = false) {
         const contenedor = document.getElementById('contenido');
@@ -533,7 +530,12 @@
                     <img src="foto.png" alt="Imagen sticky">
                 </div>
 
-                <h1 class="titulo">${datosEquipo.Equipo || 'Equipo'}</h1>
+                <h1 class="titulo">Inventario</h1>
+
+                <div class="campo">
+                    <div class="etiqueta">Equipo</div>
+                    <div class="valor"><span class="folio-destacado">${datosEquipo.Equipo}</span></div>
+                </div>
                 
                 <div class="campo">
                     <div class="etiqueta">Folio</div>
@@ -643,7 +645,7 @@
     }
     
     // =====================================================
-    // FUNCIÓN PARA GUARDAR DATOS (CORREGIDA)
+    // FUNCIÓN PARA GUARDAR DATOS
     // =====================================================
     
     async function guardarDatos() {
