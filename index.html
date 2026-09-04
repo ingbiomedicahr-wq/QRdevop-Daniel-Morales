@@ -188,16 +188,26 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
+
+        .btne {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 7px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
         
-        .btn-editar {
-            background: #667eea;
+        .btne-editar {
+            background: #83180a;
             color: white;
         }
         
-        .btn-editar:hover {
-            background: #5a6fd6;
+        .btne-editar:hover {
+            background: #f34627;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 5px 15px rgba(78, 0, 0, 0.3);
         }
         
         .btn-guardar {
@@ -210,7 +220,18 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
         }
+
+        .btn-aceptar{
+            background: #27ae60;
+            color: white;
+        }
         
+        .btn-guardar:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
         .btn-cancelar {
             background: #e74c3c;
             color: white;
@@ -299,6 +320,83 @@
         ).join('');
     }
     
+    function Contraseña(Pssd) {
+        const contenedor = document.getElementById('contenido');
+        if(Pssd==true){
+            contenedor.innerHTML=`
+            
+                <div class="error">
+                    <div class="contenedor-sticky">
+                        <img src="foto.png" alt="Imagen sticky">
+                    </div>
+                    <h2>Introduce la contraseña: QR</h2>
+                    <p>.....</p>
+                    <div style="margin-top: 15px; padding: 10px; background: #f0f4f8; border-radius: 8px;">
+                        <div class="campo campo-editable" style="border-left-color: #e74c3c;">
+                        <input type="password" id="Password" placeholder="****" 
+                               style="width: 100%; padding: 10px; border: 2px solid #e74c3c; border-radius: 5px; box-sizing: border-box;">
+                        <div id="mensaje-error" style="margin-top: 5px; color: #e74c3c; font-size: 14px;">
+                            a contraseña ingresada es incorrecta
+                        </div>
+                    </div>
+                        <div class="acciones">
+                            <button class="btn btn-aceptar" onclick="verificar(true)">Aceptar</button>
+                        </div>
+
+                    </div>
+                    <div class="badge">Sistema de inventario</div>
+                </div>
+            `;
+        }
+    }
+
+    function verificar(Accion) {
+    const input = document.getElementById('Password');
+    const contenedor = document.getElementById('contenido');
+    const passwordIngresada = input.value.trim();
+    
+    if (passwordIngresada == "4321") {
+        mostrarEquipo(true);
+    } else {
+        
+        contenedor.innerHTML = `
+            <div class="error">
+                <div class="contenedor-sticky">
+                    <img src="foto.png" alt="Imagen sticky">
+                </div>
+                <h2 style="color: #e74c3c;">Contraseña Incorrecta</h2>
+                <p>Intenta nuevamente</p>
+                <div style="margin-top: 15px; padding: 10px; background: #f0f4f8; border-radius: 8px;">
+                    <div class="campo campo-editable" style="border-left-color: #e74c3c;">
+                        <input type="password" id="Password" placeholder="Ingresa la contraseña" 
+                               style="width: 100%; padding: 10px; border: 2px solid #e74c3c; border-radius: 5px; box-sizing: border-box;">
+                        <div id="mensaje-error" style="margin-top: 5px; color: #e74c3c; font-size: 14px;">
+                            a contraseña ingresada es incorrecta
+                        </div>
+                    </div>
+                    <div class="acciones">
+                        <button class="btn btn-aceptar" onclick="verificar(true)" 
+                                style="background: #e74c3c; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer;">
+                            Reintentar
+                        </button>
+                        <button class="btn btn-cancelar" onclick="mostrarEquipo(false)" 
+                                style="background: #95a5a6; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer;">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+                <div class="badge">Sistema de inventario</div>
+            </div>
+        `;
+        
+        // Enfocar el input para escribir de nuevo
+        setTimeout(() => {
+            document.getElementById('Password').focus();
+        }, 100);
+    }
+}
+
+
     async function obtenerDatosDeGoogleSheets() {
         try {
             const response = await fetch(URL_PUBLICA);
@@ -340,7 +438,6 @@
                 <div class="error">
                     <div class="contenedor-sticky">
                         <img src="foto.png" alt="Imagen sticky">
-                        <p>Esta imagen se pega al top cuando haces scroll</p>
                     </div>
                     <h2>Escanea un código QR</h2>
                     <p>Este visor mostrará la información del equipo</p>
@@ -369,7 +466,7 @@
         if (!datos) {
             contenedor.innerHTML = `
                 <div class="error">
-                    <h2>⚠️ Error de conexión</h2>
+                    <h2>Error de conexión</h2>
                     <p>No se pudo cargar el inventario</p>
                     <p style="font-size: 14px; margin-top: 10px; color: #95a5a6;">
                         Verifica tu conexión a internet
@@ -406,15 +503,14 @@
                     <div class="error">
                         <div class="contenedor-sticky">
                             <img src="foto.png" alt="Imagen sticky">
-                            <p>Esta imagen se pega al top cuando haces scroll</p>
                         </div>
-                        <h2>📝 Nuevo equipo</h2>
+                        <h2>Nuevo equipo</h2>
                         <p>El folio <strong>${folioBuscado}</strong> no existe en el inventario</p>
                         <p style="font-size: 14px; color: #95a5a6; margin-top: 10px;">
                             Haz clic en "Editar" para crear este nuevo registro
                         </p>
                         <div class="acciones">
-                            <button class="btn btn-editar" onclick="mostrarEquipo(true)">✏️ Crear equipo</button>
+                            <button class="btne btne-editar" onclick=Contraseña(true) >Crear equipo</button>
                         </div>
                     </div>
                 `;
@@ -423,16 +519,15 @@
             
             // Mostrar datos en modo lectura
             contenedor.innerHTML = `
+                <div class="contenedor-sticky">
+                    <img src="foto.png" alt="Imagen sticky">
+                </div>
+
                 <h1 class="titulo">${datosEquipo.Equipo || 'Equipo'}</h1>
                 
                 <div class="campo">
                     <div class="etiqueta">Folio</div>
                     <div class="valor"><span class="folio-destacado">${datosEquipo.Folio}</span></div>
-                </div>
-                
-                <div class="campo">
-                    <div class="etiqueta">Equipo</div>
-                    <div class="valor">${datosEquipo.Equipo || 'No especificado'}</div>
                 </div>
                 
                 <div class="campo">
@@ -465,11 +560,7 @@
                 
                 
                 <div class="acciones">
-                    <button class="btn btn-editar" onclick="mostrarEquipo(true)">✏️ Editar</button>
-                </div>
-                
-                <div style="text-align: center; margin-top: 15px;">
-                    <span class="badge">✅ Datos actualizados</span>
+                    <button class="btne btne-editar" onclick="Contraseña(true)"></button>
                 </div>
                 
                 <div class="footer">
@@ -491,9 +582,8 @@
         contenedor.innerHTML = `
             <div class="contenedor-sticky">
                 <img src="Logo.png" alt="Imagen sticky">
-                <p>Esta imagen se pega al top cuando haces scroll</p>
             </div>
-            <h1 class="titulo">${esNuevo ? '📝 Nuevo equipo' : '✏️ Editar equipo'}</h1>
+            <h1 class="titulo">${esNuevo ? 'Nuevo equipo' : 'Editar equipo'}</h1>
             
             <div class="campo campo-editable" style="border-left-color: #1a237e;">
                 <div class="etiqueta">Folio (no editable)</div>
@@ -535,12 +625,12 @@
             
             
             
-            <div id="mensaje-exito" class="mensaje-exito">✅ Datos guardados correctamente</div>
-            <div id="mensaje-error" class="mensaje-error">❌ Error al guardar los datos</div>
+            <div id="mensaje-exito" class="mensaje-exito">Datos guardados correctamente</div>
+            <div id="mensaje-error" class="mensaje-error">Error al guardar los datos</div>
             
             <div class="acciones">
-                <button class="btn btn-guardar" onclick="guardarDatos()">💾 Guardar</button>
-                <button class="btn btn-cancelar" onclick="mostrarEquipo(false)">❌ Cancelar</button>
+                <button class="btn btn-guardar" onclick="guardarDatos()">Guardar</button>
+                <button class="btn btn-cancelar" onclick="mostrarEquipo(false)">Cancelar</button>
             </div>
             
             <div class="footer">
@@ -598,7 +688,7 @@
             const resultado = await response.text();
             
             if (response.ok && !resultado.includes('Error')) {
-                mensajeExito.textContent = '✅ Datos guardados correctamente en el inventario';
+                mensajeExito.textContent = 'Datos guardados correctamente en el inventario';
                 mensajeExito.classList.add('mostrar');
                 
                 // Esperar 2 segundos y volver al modo visualización
@@ -609,10 +699,10 @@
                 throw new Error(resultado || 'Error desconocido');
             }
         } catch (error) {
-            mensajeError.textContent = `❌ Error: ${error.message || 'No se pudo guardar los datos'}`;
+            mensajeError.textContent = `Error: ${error.message || 'No se pudo guardar los datos'}`;
             mensajeError.classList.add('mostrar');
             botonGuardar.disabled = false;
-            botonGuardar.textContent = '💾 Guardar';
+            botonGuardar.textContent = 'Guardar';
         }
     }
     
@@ -622,6 +712,9 @@
     
     mostrarEquipo(false);
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
