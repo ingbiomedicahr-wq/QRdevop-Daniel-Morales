@@ -432,6 +432,10 @@
         const contenedor = document.getElementById('contenido');
         const folioBuscado = obtenerParametro('folio');
         
+        if (folioBuscado) {
+        datos = await obtenerDatosDeGoogleSheets(); // ✅ Siempre descarga
+        }
+
         if (!folioBuscado) {
             contenedor.innerHTML = `
             
@@ -712,9 +716,6 @@
     
     mostrarEquipo(false);
 </script>
-
-</body>
-</html>
 
 </body>
 </html>
