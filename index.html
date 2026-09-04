@@ -291,8 +291,12 @@
     // =====================================================
     
     const URL_PUBLICA = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrXQFc-3LwfW29msop3ojGDKyehHOpC4nyfVYs_DgvKUjXGvauIcpPVRnuKG0hR4kFJQMcZLMp78na/pub?output=csv';
-    // CAMBIA ESTA URL POR LA DE TU SCRIPT DE GOOGLE APPS SCRIPT
     const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxXQ6Zj9G_m5i2kut-uuNvUHv_n-Bl6o5wujEKruCWvzdFH2aYsWRnQ4MuvOzmLC8kr/exec';
+    
+    // =====================================================
+    // VARIABLES DE CACHÉ (CORREGIDO)
+    // =====================================================
+    let datosCargados = null;
     
     // =====================================================
     // FUNCIONES AUXILIARES
@@ -389,15 +393,22 @@
             </div>
         `;
         
-        // Enfocar el input para escribir de nuevo
         setTimeout(() => {
             document.getElementById('Password').focus();
         }, 100);
     }
 }
 
+    // =====================================================
+    // FUNCIÓN PARA OBTENER DATOS (CORREGIDA)
+    // =====================================================
+    
+    async function obtenerDatosDeGoogleSheets(forzar = false) {
+        // Si hay caché y no se fuerza, devolverla
+        if (!forzar && datosCargados) {
+            return datosCargados;
+        }
 
-    async function obtenerDatosDeGoogleSheets() {
         try {
             const response = await fetch(URL_PUBLICA);
             if (!response.ok) throw new Error('Error al obtener los datos');
@@ -417,7 +428,10 @@
                 }
                 resultados.push(obj);
             }
+            
+            datosCargados = resultados;
             return resultados;
+            
         } catch (error) {
             console.error('Error al cargar datos:', error);
             return null;
@@ -425,17 +439,13 @@
     }
     
     // =====================================================
-    // FUNCIÓN PRINCIPAL PARA MOSTRAR EL EQUIPO
+    // FUNCIÓN PRINCIPAL PARA MOSTRAR EL EQUIPO (CORREGIDA)
     // =====================================================
     
-    async function mostrarEquipo(modoEdicion = false) {
+    async function mostrarEquipo(modoEdicion = false, forzarRecarga = false) {
         const contenedor = document.getElementById('contenido');
         const folioBuscado = obtenerParametro('folio');
         
-        if (folioBuscado) {
-        datos = await obtenerDatosDeGoogleSheets(); // ✅ Siempre descarga
-        }
-
         if (!folioBuscado) {
             contenedor.innerHTML = `
             
@@ -465,7 +475,8 @@
             </div>
         `;
         
-        const datos = await obtenerDatosDeGoogleSheets();
+        // SOLO UNA LLAMADA A LA API (con el parámetro de forzar)
+        const datos = await obtenerDatosDeGoogleSheets(forzarRecarga);
         
         if (!datos) {
             contenedor.innerHTML = `
@@ -483,7 +494,6 @@
         const equipo = datos.find(item => item.Folio === folioBuscado);
         const esNuevo = !equipo;
         
-        // Si el equipo no existe, crear datos vacíos para nuevo registro
         const datosEquipo = equipo || {
             Folio: folioBuscado,
             Equipo: '',
@@ -497,9 +507,6 @@
         
         const claseEstado = obtenerClaseEstado(datosEquipo.Estado);
         
-        // =====================================================
-        // MODO VISUALIZACIÓN (SOLO LECTURA)
-        // =====================================================
         if (!modoEdicion) {
             if (!equipo) {
                 contenedor.innerHTML = `
@@ -521,7 +528,6 @@
                 return;
             }
             
-            // Mostrar datos en modo lectura
             contenedor.innerHTML = `
                 <div class="contenedor-sticky">
                     <img src="foto.png" alt="Imagen sticky">
@@ -561,8 +567,6 @@
                     </div>
                 </div>
                 
-                
-                
                 <div class="acciones">
                     <button class="btne btne-editar" onclick="Contraseña(true)"></button>
                 </div>
@@ -580,9 +584,6 @@
             return;
         }
         
-        // =====================================================
-        // MODO EDICIÓN
-        // =====================================================
         contenedor.innerHTML = `
             <div class="contenedor-sticky">
                 <img src="Logo.png" alt="Imagen sticky">
@@ -627,8 +628,6 @@
                 </select>
             </div>
             
-            
-            
             <div id="mensaje-exito" class="mensaje-exito">Datos guardados correctamente</div>
             <div id="mensaje-error" class="mensaje-error">Error al guardar los datos</div>
             
@@ -644,22 +643,19 @@
     }
     
     // =====================================================
-    // FUNCIÓN PARA GUARDAR DATOS
+    // FUNCIÓN PARA GUARDAR DATOS (CORREGIDA)
     // =====================================================
     
     async function guardarDatos() {
-        // Mostrar mensajes de carga
         const mensajeExito = document.getElementById('mensaje-exito');
         const mensajeError = document.getElementById('mensaje-error');
         const botonGuardar = document.querySelector('.btn-guardar');
         
-        // Deshabilitar botón para evitar doble clic
         botonGuardar.disabled = true;
         botonGuardar.textContent = '⏳ Guardando...';
         mensajeExito.classList.remove('mostrar');
         mensajeError.classList.remove('mostrar');
         
-        // Recopilar datos del formulario
         const datos = {
             Folio: document.getElementById('folio-input').value,
             Equipo: document.getElementById('equipo-input').value.trim(),
@@ -670,7 +666,6 @@
             Estado: document.getElementById('estado-input').value,
         };
         
-        // Validar campos requeridos
         if (!datos.Equipo || !datos.Modelo || !datos.Marca || !datos.Ubicacion) {
             mensajeError.textContent = 'Los campos marcados con * son obligatorios';
             mensajeError.classList.add('mostrar');
@@ -680,7 +675,6 @@
         }
         
         try {
-            // Enviar datos al script de Google Apps
             const response = await fetch(URL_SCRIPT, {
                 method: 'POST',
                 headers: {
@@ -695,9 +689,9 @@
                 mensajeExito.textContent = 'Datos guardados correctamente en el inventario';
                 mensajeExito.classList.add('mostrar');
                 
-                // Esperar 2 segundos y volver al modo visualización
+                // Forzar recarga de datos frescos
                 setTimeout(() => {
-                    mostrarEquipo(false);
+                    mostrarEquipo(false, true);
                 }, 2000);
             } else {
                 throw new Error(resultado || 'Error desconocido');
