@@ -506,6 +506,7 @@ f
         
         if (!modoEdicion) {
             if (!equipo) {
+                // En buton class agrega onclick=Contraseña(true) para volver a tener la contraseña
                 contenedor.innerHTML = `
                 
                     <div class="error">
@@ -518,7 +519,7 @@ f
                             Haz clic en "Editar" para crear este nuevo registro
                         </p>
                         <div class="acciones">
-                            <button class="btne btne-editar" onclick=Contraseña(true) >Crear equipo</button>
+                            button class="btne btne-editar" onclick=mostrarEquipo(true) >Crear equipo</button>
                         </div>
                     </div>
                 `;
