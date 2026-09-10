@@ -362,7 +362,9 @@
     if (passwordIngresada == "4321") {
         mostrarEquipo(true);
     } else {
-        
+        ///Corregir aquí despu+es
+        mostrarEquipo(true);
+        /*
         contenedor.innerHTML = `
             <div class="error">
                 <div class="contenedor-sticky">
@@ -396,6 +398,7 @@
         setTimeout(() => {
             document.getElementById('Password').focus();
         }, 100);
+        */
     }
 }
 
@@ -519,7 +522,7 @@
                             Haz clic en "Editar" para crear este nuevo registro
                         </p>
                         <div class="acciones">
-                            button class="btne btne-editar" onclick=mostrarEquipo(true) >Crear equipo</button>
+                            button class="btne btne-editar" onclick=Contraseña(true) >Crear equipo</button>
                         </div>
                     </div>
                 `;
